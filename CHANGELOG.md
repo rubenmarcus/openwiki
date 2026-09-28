@@ -1,5 +1,13 @@
 # openwiki
 
+## 0.6.1
+
+### Patch Changes
+
+- [#937](https://github.com/langchain-ai/openwiki/pull/937) [`261022d`](https://github.com/langchain-ai/openwiki/commit/261022d2db0216a6956df7ff070f380dbf7f2bc2) Thanks [@ind1go](https://github.com/ind1go)! - Correct MCP generation for IBM Bob.
+
+- [#936](https://github.com/langchain-ai/openwiki/pull/936) [`b3b5ea4`](https://github.com/langchain-ai/openwiki/commit/b3b5ea4359074d164abbd3d4101cb4138c195187) Thanks [@ousamabenyounes](https://github.com/ousamabenyounes)! - Keep repository claim evidence line references in sync when cited blocks move.
+
 ## 0.6.0
 
 ### Minor Changes
