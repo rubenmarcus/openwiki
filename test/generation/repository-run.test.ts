@@ -494,6 +494,38 @@ test("tolerates a human-readable not-found error from the backend when skipping 
   expect(run.state.plan?.pages[0]?.status).toBe("skipped");
 });
 
+test("tolerates a raw ENOENT delete error when skipping a never-written page in a new directory", async () => {
+  // Regression for #871: when a page sits in a subdirectory that no write
+  // ever created, DeepAgents' FilesystemBackend.delete() fails its
+  // symlink-escape lstat on the missing parent directory and surfaces
+  // `Error deleting '<page>': ENOENT: no such file or directory, lstat '<dir>'`
+  // rather than a "not found" message. Skipping the page must still roll back
+  // quietly instead of aborting the whole run.
+  const root = await createRepository();
+  const page = "/openwiki/operations/environment-setup.md";
+  const run = await beginForcedUpdate(root);
+  await submitRepositoryPlan(run, {
+    pages: [
+      {
+        path: page,
+        title: "Environment Setup",
+        purpose: "Document a page whose parent directory was never written.",
+      },
+    ],
+  });
+  const next = await nextRepositoryPage(run);
+  if (next.status !== "pending") throw new Error("Expected pending page.");
+
+  const snapshot = await captureRepositoryPageSnapshot(run, next.job.id);
+  expect(snapshot).toMatchObject({ path: page, markdown: null, claims: null });
+
+  const deleteSpy = vi.spyOn(run.backend, "delete");
+
+  await expect(skipRepositoryPage(run, snapshot)).resolves.toBeUndefined();
+  expect(deleteSpy).toHaveBeenCalledWith(page);
+  expect(run.state.plan?.pages[0]?.status).toBe("skipped");
+});
+
 beforeEach(() => {
   failureHarness.manifestReplacements = 0;
   failureHarness.manifestWrites = 0;
